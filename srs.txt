@@ -1,0 +1,56 @@
+I want to create a cli tool with go that called `mess`
+it's offical name would be `mess manager` this tool will help developers to manage messy project with multiple repos and applications.
+this will be useful to deal with similiar cases:
+    - system with saperated frontend and backend applcations.
+    - micro-services backend
+    - modular systems
+and this is how should it work:
+    1. Developers have to create `mess.json` file that will contain configurations for that project.
+    2. `mess.json` should be json file.
+    3. `mess.json` should contain name of the project.
+    4. `mess.json` should contain `repos` section that consists of list of `repo defenition` objects
+        4.1. `repo defenition` should contain `name` attribute that should be unique name for repo to be used in other parts.
+        4.2. `repo defenition` should contain `url` attribute that should be the git repo url to be used for cloning the repo.
+        4.3. `repo defenition` should have an optional `clone_params` attribute that should contain addtional params to git clone command.
+    5. `mess.json` should contain `applications` section that consists of list of `application defenition` objects
+        5.1. `application defenition` should contain `name` attribute that should be unique name for application to be used in other parts.
+        5.2. `application defenition` should contain `repos` attribute that should be list of `repo defenition`.`name` values.
+        5.3. `application defenition` should contain `scripts` section that consists of dictionary of `script name` and `script value`.
+            5.3.1. `script value` should be either an string or list of string
+        5.4. `application defenition` should contain optional `env` section that consists of key-value pair of Enviornment Variables.
+        5.5. `application defenition` should contain optional `pre-setup` attribute that consists of script command string.
+        5.6. `application defenition` should contain optional `post-setup` attribute that consists of script command string.
+    6. `mess` should read and validate the `mess.json` file that presents in PWD if exists
+    7. `mess` should read and validate the `mess.json` file that referenced with `-f <file-path>` or `--file <file-path>` flags
+    8. `mess` should be able to create sample `mess.json` file using `init` command.
+    9. `mess` should be able to allow users to add repo to `mess.json` using `repo <repo-name> add <repo-url>`
+        9.1. `mess` should be able to validate the inserted `<repo-name>` `<repo-url>` params that they didn`t already exists in the `mess.json` file.
+        9.2. `mess` should add the inserted values into `repos` section in `mess.json` file as new `repo defenition` object.
+    10. `mess` should be able to allow users to remove repo from `mess.json` using `repo <repo-name> remove` or `repo <repo-name> rm`
+        10.1. `mess` should prompt a confirmation for delete.
+        10.2. `mess` should remove the `repo defenition` object from `repos` section in `mess.json` file
+        10.3. `mess` should validate if the repo is used in any applcation if does list all the applications that it used in and prompt a confirmation
+        10.4. `mess` should remove the `repo defenition`.`name` reference in all `application defenition`.`repos`.
+    11. `mess` should be able to allow users to clone the git repo using `repo <repo-name> get`.
+        11.1. `mess` should clone the repo inside '{mess.json file location}/repos/{repo-name}'.
+    12. `mess` should be able to allow users to execute git commands on repos using `repo <repo-name> <git-command>`.
+        12.1. `mess` should delegate `<git-command>` to `git` cli command.
+    13. `mess` should be able to allow users to add application to `mess.json` file using `application <application-name> init` or `app <application-name> init`commands.
+        13.1. `mess` should be able to validate the inserted `<application-name>` param that it does not already exists in the `mess.json` file.
+        13.2. `mess` should add the inserted values into `applications` section in `mess.json` file as new `application defenition` object.
+    14. `mess` should be able to allow users to link application with repo using `application <application-name> link <repo-name> [...repo-name]` or `app <application-name> link <repo-name> [...repo-name]` commands.
+        14.1. `mess` should validate the inserted values are presents in `mess.json` file.
+        14.2. `mess` should insert the `<repo-name>` inside `application defenition`.`repos` attribute.
+    15. `mess` should be able to allow users to setup the application using `application <application-name> setup` or `app <applcation-name> setup`
+        15.1. `mess` should check for each repo linked with application is cloned or not. if not clone it.
+        15.2. `mess` should create folder in the place `MESS_APPLICATION_ROOT` enviornment Variable which fallbacks to `{mess.json file location}/applications`.
+        15.3. `mess` should execute `application defenition`.`pre-setup` script on `MESS_APPLICATION_ROOT`.
+        15.4. `mess` should create symbolic link between '$MESS_APPLICATION_ROOT/{repo-name}' and '{mess.json file location}/repos/{repo-name}' if does not exists.
+        15.5. `mess` should execute `application defenition`.`post-setup` script on `MESS_APPLICATION_ROOT`
+    16. `mess` should be able to allow users to clone application repos using `application <application-name> clone` or `app <applcation-name> clone`
+        16.1. `mess` should check for each repo linked with application is cloned or not. if not clone it.
+        16.2. `mess` should create folder in the place `MESS_APPLICATION_ROOT` enviornment Variable which fallbacks to `{mess.json file location}/applications`.
+        16.3. `mess` should create symbolic link between '$MESS_APPLICATION_ROOT/{repo-name}' and '{mess.json file location}/repos/{repo-name}' if does not exists.
+    17. `mess` should be able to execute script on application folder using `applcation <application-name> run <script-name>` or `app <application-name> run <script-name>` commands
+        17.1. if the `script value` are string `mess` should execute the command directly.
+        17.1. if the `script value` are list of strings `mess` should execute each string on saperate sub-process.
