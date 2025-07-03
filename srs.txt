@@ -22,7 +22,10 @@ and this is how should it work:
         5.6. `application defenition` should contain optional `post-setup` attribute that consists of script command string.
     6. `mess` should read and validate the `mess.json` file that presents in PWD if exists
     7. `mess` should read and validate the `mess.json` file that referenced with `-f <file-path>` or `--file <file-path>` flags
-    8. `mess` should be able to create sample `mess.json` file using `init` command.
+    8. `mess` should be able to create empty `mess.json` file using `init` command.
+        8.1. `mess` should accept optional argument `-n <project-name>` or `--name <project-name>` if present.
+        8.2. `mess` should name the project with provided `<project-name>` otherwise it should use the PWD dirctory name.
+        8.3. `mess` should validate if the project is already initalized, if it is initalized it should return an error.
     9. `mess` should be able to allow users to add repo to `mess.json` using `repo <repo-name> add <repo-url>`
         9.1. `mess` should be able to validate the inserted `<repo-name>` `<repo-url>` params that they didn`t already exists in the `mess.json` file.
         9.2. `mess` should add the inserted values into `repos` section in `mess.json` file as new `repo defenition` object.
