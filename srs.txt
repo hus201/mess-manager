@@ -44,13 +44,13 @@ and this is how should it work:
     15. `mess` should be able to allow users to setup the application using `application <application-name> setup` or `app <applcation-name> setup`
         15.1. `mess` should check for each repo linked with application is cloned or not. if not clone it.
         15.2. `mess` should create folder in the place `MESS_APPLICATION_ROOT` enviornment Variable which fallbacks to `{mess.json file location}/applications`.
-        15.3. `mess` should execute `application defenition`.`pre-setup` script on `MESS_APPLICATION_ROOT`.
+        15.3. `mess` should execute `application defenition`.`pre-setup` script at `MESS_APPLICATION_ROOT`.
         15.4. `mess` should create symbolic link between '$MESS_APPLICATION_ROOT/{repo-name}' and '{mess.json file location}/repos/{repo-name}' if does not exists.
-        15.5. `mess` should execute `application defenition`.`post-setup` script on `MESS_APPLICATION_ROOT`
+        15.5. `mess` should execute `application defenition`.`post-setup` script at `MESS_APPLICATION_ROOT`
     16. `mess` should be able to allow users to clone application repos using `application <application-name> clone` or `app <applcation-name> clone`
         16.1. `mess` should check for each repo linked with application is cloned or not. if not clone it.
         16.2. `mess` should create folder in the place `MESS_APPLICATION_ROOT` enviornment Variable which fallbacks to `{mess.json file location}/applications`.
         16.3. `mess` should create symbolic link between '$MESS_APPLICATION_ROOT/{repo-name}' and '{mess.json file location}/repos/{repo-name}' if does not exists.
     17. `mess` should be able to execute script on application folder using `applcation <application-name> run <script-name>` or `app <application-name> run <script-name>` commands
         17.1. if the `script value` are string `mess` should execute the command directly.
-        17.1. if the `script value` are list of strings `mess` should execute each string on saperate sub-process.
+        17.2. if the `script value` are list of strings `mess` should execute each string on saperate sub-process.

@@ -41,7 +41,7 @@ func SetupApplication(app *config.ApplicationDefinition, cfg *config.MessConfig,
 	// Execute pre-setup script if defined
 	if app.PreSetup != "" {
 		fmt.Printf("Executing pre-setup script for application '%s'...\n", app.Name)
-		if err := runSingleCommand(app.PreSetup, appsDir, app.Env); err != nil {
+		if err := runSingleCommand(app.PreSetup, appDir, app.Env); err != nil {
 			return fmt.Errorf("pre-setup script failed: %v", err)
 		}
 	}
@@ -93,7 +93,7 @@ func SetupApplication(app *config.ApplicationDefinition, cfg *config.MessConfig,
 	// Execute post-setup script if defined
 	if app.PostSetup != "" {
 		fmt.Printf("Executing post-setup script for application '%s'...\n", app.Name)
-		if err := runSingleCommand(app.PostSetup, appsDir, app.Env); err != nil {
+		if err := runSingleCommand(app.PostSetup, appDir, app.Env); err != nil {
 			return fmt.Errorf("post-setup script failed: %v", err)
 		}
 	}
