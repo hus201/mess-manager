@@ -1,4 +1,4 @@
-# Mess Manager (messmgr)
+# Mess Manager (mess)
 
 A CLI tool that helps developers manage messy projects with multiple repositories and applications.
 
@@ -21,15 +21,15 @@ Mess Manager is designed to help developers deal with complex project structures
 
 ```bash
 git clone <this-repository>
-cd messmgr
-go build -o messmgr .
+cd mess
+go build -o mess .
 ```
 
-You can then move the `messmgr` binary to a directory in your `PATH` for global access.
+You can then move the `mess` binary to a directory in your `PATH` for global access.
 
 ## Configuration
 
-Mess Manager uses a `mess.config` JSON file to define your project structure. This file should be placed in your project root directory.
+Mess Manager uses a `mess.json` JSON file to define your project structure. This file should be placed in your project root directory.
 
 ### Configuration Structure
 
@@ -39,7 +39,8 @@ Mess Manager uses a `mess.config` JSON file to define your project structure. Th
   "repos": [
     {
       "name": "unique-repo-name",
-      "url": "https://github.com/example/repo.git"
+      "url": "https://github.com/example/repo.git",
+      "clone_params": "--depth=1"
     }
   ],
   "applications": [
@@ -49,7 +50,13 @@ Mess Manager uses a `mess.config` JSON file to define your project structure. Th
       "scripts": {
         "script-name": "command-to-execute",
         "parallel-script": ["command-1", "command-2"]
-      }
+      },
+      "env": {
+        "NODE_ENV": "development",
+        "API_URL": "http://localhost:3000"
+      },
+      "pre-setup": "npm install",
+      "post-setup": "npm run build"
     }
   ]
 }
@@ -61,58 +68,70 @@ Mess Manager uses a `mess.config` JSON file to define your project structure. Th
 - **repos**: Array of repository definitions
   - **name**: Unique repository name (required)
   - **url**: Git repository URL (required)
+  - **clone_params**: Optional additional parameters for git clone command
 - **applications**: Array of application definitions
   - **name**: Unique application name (required)
   - **repos**: Array of repository names that this application depends on
   - **scripts**: Dictionary of script names and their commands
     - Script values can be either a string (single command) or array of strings (parallel commands)
+  - **env**: Optional dictionary of environment variables (key-value pairs)
+  - **pre-setup**: Optional script command to run before setup
+  - **post-setup**: Optional script command to run after setup
 
 ## Commands
 
 ### Global Flags
 
-- `-f, --file <path>`: Specify custom config file path (default: `mess.config`)
+- `-f, --file <path>`: Specify custom config file path (default: `mess.json`)
 
 ### Initialize Project
 
 ```bash
-# Create a sample mess.config file
-messmgr init
+# Create a sample mess.json file
+mess init
 ```
 
 ### Repository Management
 
 ```bash
 # Add a new repository
-messmgr repo add <repo-name> <repo-url>
+mess repo <repo-name> add <repo-url>
 
 # Remove a repository
-messmgr repo remove <repo-name>
-messmgr repo rm <repo-name>          # alias
+mess repo <repo-name> remove
+mess repo <repo-name> rm          # alias
 
 # Clone a repository
-messmgr repo get <repo-name>
-messmgr repo clone <repo-name>       # alias
+mess repo <repo-name> get
+
+# Execute git commands on a repository
+mess repo <repo-name> <git-command>
+# Example: mess repo frontend status
+# Example: mess repo backend pull
 ```
 
 ### Application Management
 
 ```bash
 # Add a new application
-messmgr app add <app-name>
-messmgr application add <app-name>   # alias
+mess application <app-name> init
+mess app <app-name> init           # alias
 
-# Link an application with a repository
-messmgr app link <app-name> <repo-name>
-messmgr application link <app-name> <repo-name>  # alias
+# Link an application with repositories
+mess application <app-name> link <repo-name> [repo-name...]
+mess app <app-name> link <repo-name> [repo-name...]  # alias
 
-# Setup an application (clone repos and create symlinks)
-messmgr app setup <app-name>
-messmgr application setup <app-name>  # alias
+# Setup an application (clone repos, create symlinks, run pre/post scripts)
+mess application <app-name> setup
+mess app <app-name> setup          # alias
+
+# Clone application repositories and create symlinks
+mess application <app-name> clone
+mess app <app-name> clone          # alias
 
 # Run a script for an application
-messmgr app run <app-name> <script-name>
-messmgr application run <app-name> <script-name>  # alias
+mess application <app-name> run <script-name>
+mess app <app-name> run <script-name>  # alias
 ```
 
 ## Directory Structure
@@ -121,12 +140,12 @@ When you use Mess Manager, it creates the following directory structure in your 
 
 ```
 your-project/
-├── mess.config
+├── mess.json
 ├── repos/
 │   ├── frontend/          # Cloned repositories
 │   ├── backend/
 │   └── api/
-└── applications/
+└── applications/          # Or custom path via MESS_APPLICATION_ROOT
     ├── web-app/
     │   ├── frontend/      # Symbolic links to repos
     │   └── backend/
@@ -134,39 +153,42 @@ your-project/
         └── api/
 ```
 
+## Environment Variables
+
+- **MESS_APPLICATION_ROOT**: Custom path for applications directory (defaults to `{mess.json location}/applications`)
+
 ## Usage Examples
 
 ### 1. Initialize a New Project
 
 ```bash
 # Create initial configuration
-messmgr init
+mess init
 
-# This creates a mess.config with sample data
+# This creates a mess.json with sample data
 ```
 
 ### 2. Set Up a Multi-Repository Project
 
 ```bash
 # Add repositories
-messmgr repo add frontend https://github.com/company/frontend.git
-messmgr repo add backend https://github.com/company/backend.git
-messmgr repo add api https://github.com/company/api.git
+mess repo frontend add https://github.com/company/frontend.git
+mess repo backend add https://github.com/company/backend.git
+mess repo api add https://github.com/company/api.git
 
 # Create application
-messmgr app add web-app
+mess app web-app init
 
 # Link repositories to application
-messmgr app link web-app frontend
-messmgr app link web-app backend
+mess app web-app link frontend backend
 
-# Setup the application (clone repos and create symlinks)
-messmgr app setup web-app
+# Setup the application (clone repos, create symlinks, run setup scripts)
+mess app web-app setup
 ```
 
-### 3. Add Scripts and Run Them
+### 3. Add Scripts and Environment Variables
 
-Edit your `mess.config` to add scripts:
+Edit your `mess.json` to add scripts and environment variables:
 
 ```json
 {
@@ -180,7 +202,13 @@ Edit your `mess.config` to add scripts:
         "start": "npm run dev",
         "build": ["npm run build:frontend", "npm run build:backend"],
         "test": "npm test"
-      }
+      },
+      "env": {
+        "NODE_ENV": "development",
+        "API_URL": "http://localhost:3000"
+      },
+      "pre-setup": "npm install",
+      "post-setup": "npm run build"
     }
   ]
 }
@@ -190,18 +218,31 @@ Then run scripts:
 
 ```bash
 # Run a single command
-messmgr app run web-app start
+mess app web-app run start
 
 # Run parallel commands
-messmgr app run web-app build
+mess app web-app run build
 ```
 
-### 4. Working with Different Config Files
+### 4. Working with Git Commands
+
+```bash
+# Check status of a repository
+mess repo frontend status
+
+# Pull latest changes
+mess repo backend pull
+
+# Create a new branch
+mess repo api checkout -b feature/new-feature
+```
+
+### 5. Working with Different Config Files
 
 ```bash
 # Use a different config file
-messmgr -f ./configs/production.config init
-messmgr -f ./configs/production.config repo add prod-db https://github.com/company/prod-db.git
+mess -f ./configs/production.json init
+mess -f ./configs/production.json repo prod-db add https://github.com/company/prod-db.git
 ```
 
 ## How It Works
@@ -209,8 +250,14 @@ messmgr -f ./configs/production.config repo add prod-db https://github.com/compa
 1. **Repository Management**: Repositories are cloned to `repos/<repo-name>` directories
 2. **Application Setup**: When you run `app setup`, it:
    - Clones any missing repositories linked to the application
-   - Creates symbolic links in `applications/<app-name>/` pointing to the corresponding repositories
-3. **Script Execution**: Scripts run in the application directory (`applications/<app-name>/`) where symlinks provide access to all linked repositories
+   - Creates the application directory in `MESS_APPLICATION_ROOT` (defaults to `applications/<app-name>/`)
+   - Executes the `pre-setup` script if defined
+   - Creates symbolic links in the application directory pointing to the corresponding repositories
+   - Executes the `post-setup` script if defined
+3. **Script Execution**: Scripts run in the application directory where symlinks provide access to all linked repositories
+   - Single string commands are executed directly
+   - Array of strings are executed in parallel as separate sub-processes
+4. **Git Command Delegation**: Git commands are delegated directly to the `git` CLI for each repository
 
 ## Error Handling
 
@@ -218,6 +265,7 @@ messmgr -f ./configs/production.config repo add prod-db https://github.com/compa
 - Missing repositories/applications are detected and reported
 - Repository removal checks for usage in applications and prompts for confirmation
 - Clear error messages guide users to fix configuration issues
+- Validation ensures referenced repositories exist before linking to applications
 
 ## Contributing
 
